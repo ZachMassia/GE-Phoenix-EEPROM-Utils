@@ -5,36 +5,8 @@
  */
 
 #include <Arduino.h>
-
-/* Defines the Arduino pins as X2212 pins for ease of use */
-#define WRT 2
-#define AD7 6
-#define AD4 7
-#define AD3 8
-#define AD2 9
-#define AD1 10
-#define AD0 11
-#define STO 12
-#define LED 13
-#define IO1 14
-#define IO2 15
-#define IO3 16
-#define IO4 17
-#define AD5 18
-#define AD6 19
-
-/* Defines other constants used in the program */
-#define DLY       1           //EEPROM write and store delay time
-#define MAXCHARS  16          //for character string input
-#define IF        45000000    //radio IF in Hz
-#define VLO       136000000   //radio VHF bottom band limit in Hz
-#define VHI       174000000   //radio VHF top band limit in Hz
-#define VSTEP     5000        //radio VHF channel step
-#define ULO       403000000   //radio UHF bottom band limit in Hz
-#define UHI       512000000   //radio UHF top band limit in Hz
-#define USTEP     12500       //radio UHF channel step
-#define MAXCHAN   7           //8 channels in the mode
-#define TOT       1           //time-out timer (m:ss): 0=0:30, 1=1:00, 2=1:30, 3=2:00, etc.
+#include "constants.h"
+#include "read.hpp"
 
 // Add forward declerations to make this compile outside of Arduino IDE.
 byte getMode();
@@ -53,6 +25,18 @@ void printPlug(byte s3rxdata, byte s3txdata, byte s4data[], byte s5rxdata[], byt
 
 
 void setup() {
+  Serial.begin(115200);
+
+  Serial.println("Begining memory dump:");
+
+  byte io_pins[] = {
+      IO1, IO2, IO3, IO4
+  };
+  byte addr_pins[] = {
+      AD0, AD1, AD2, AD3, AD4, AD5, AD6, AD7
+  };
+  readAll(io_pins, addr_pins);
+
 /* Set modes and initialize pins */
   for(int pin = 2; pin < 20; pin++) {
     pinMode(pin, OUTPUT);
@@ -65,7 +49,6 @@ void setup() {
   }
   digitalWrite(WRT, HIGH);
   digitalWrite(STO, HIGH);
-  Serial.begin(115200);
 }
 
 /***** MAIN LOOP START *****/
@@ -493,18 +476,21 @@ void prog(byte s3, byte s4, byte s5) {
     else {
       digitalWrite(SW3[i], LOW);
     }
+
     if(s4 & mask) {
       digitalWrite(SW4[i], HIGH);
     }
     else {
       digitalWrite(SW4[i], LOW);
     }
+
     if(s5 & mask) {
       digitalWrite(SW5[i], HIGH);
     }
     else {
       digitalWrite(SW5[i], LOW);
     }
+
     mask <<= 1;                      //shifts the bit mask left once for determining value of each pin
   }
   wrt();
