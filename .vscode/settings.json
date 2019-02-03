@@ -1,6 +1,6 @@
 {
     "terminal.integrated.env.osx": {
-        "PATH": "/Users/zach/.platformio/penv/bin:/Users/zach/.platformio/penv:/Users/zach/.pyenv/shims:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "PATH": "/Users/zach/.platformio/penv/bin:/Users/zach/.platformio/penv:/Users/zach/.pyenv/shims:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin",
         "PLATFORMIO_CALLER": "vscode"
     }
 }
