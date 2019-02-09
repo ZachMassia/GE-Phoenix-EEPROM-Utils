@@ -43,6 +43,9 @@ void setup() {
 
   writeFile(io_pins, addr_pins);
 
+  Serial.println("Contents of chip after write:");
+  readAll(io_pins, addr_pins);
+
   Serial.println("Done.");
 }
 

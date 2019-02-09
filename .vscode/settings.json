@@ -2,5 +2,9 @@
     "terminal.integrated.env.osx": {
         "PATH": "/Users/zach/.platformio/penv/bin:/Users/zach/.platformio/penv:/Users/zach/.pyenv/shims:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/X11/bin",
         "PLATFORMIO_CALLER": "vscode"
+    },
+    "terminal.integrated.env.windows": {
+        "PATH": "C:\\Users\\mguy\\.platformio\\penv\\Scripts;C:\\Users\\mguy\\.platformio\\penv;C:\\Program Files\\Mozilla Firefox;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\QuickTime\\QTSystem\\;C:\\Program Files\\PuTTY\\;C:\\Program Files\\Mozilla Firefox;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\QuickTime\\QTSystem\\;C:\\Program Files\\PuTTY\\",
+        "PLATFORMIO_CALLER": "vscode"
     }
 }

@@ -75,15 +75,18 @@ void writeFile(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT]) {
     
     // Read in the file contents over serial.
     char file[MAX_ADDR];
-    Serial.println("Paste in file contents now");
-    Serial.readString().toCharArray(file, MAX_ADDR);
+    //Serial.println("Paste in file contents now");
+    //Serial.readString().toCharArray(file, MAX_ADDR);
+
+    String data = "0000000000000000000008000F00FF000B210B710A000A00EB71EB710A00EA0008F5080008000F00080008000F00FF00F8F0F80008000F00080008000F00FF00080008000F00FF0008000800FF00FF00088008000F00FF0008000800FF00FF00086008000F00FF0008000800FF00FF0008C008000F0FFF0F08000800FF00FF00";
+    data.toCharArray(file, MAX_ADDR);
 
     Serial.println("Begin write to chip.");
     for (byte addr = 0; addr < MAX_ADDR; addr++) {
         writeAddr(addr, addr_pins);
+        
         delayMicroseconds(3);
 
-        Serial.println("Toggle write enable pin");
         digitalWrite(WRT, LOW);
         delayMicroseconds(3);
         digitalWrite(WRT, HIGH);
