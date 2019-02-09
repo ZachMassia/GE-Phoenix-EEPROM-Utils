@@ -84,7 +84,16 @@ void writeFile(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT]) {
     Serial.println("Begin write to chip.");
     for (byte addr = 0; addr < MAX_ADDR; addr++) {
         writeAddr(addr, addr_pins);
-        
+        char c = file[addr];
+        byte value;
+        if (c < 'A') {
+            value = c & 0xF;
+        } else {
+            value = 9 + (c & 0xF);
+        }
+        //byte value = c<'A'? c & 0xF : 9 + (c & 0xF);
+
+        writeNibble(value, io_pins);
         delayMicroseconds(3);
 
         digitalWrite(WRT, LOW);
