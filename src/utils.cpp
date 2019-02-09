@@ -1,4 +1,5 @@
-#include "read.hpp"
+#include "utils.hpp"
+
 
 void writeAddr(byte addr, byte pins[ADD_PIN_CNT]) {
     byte mask  = 0x01;
@@ -21,6 +22,15 @@ byte readNibble(byte pins[IO_PIN_CNT]) {
     return data;
 }
 
+void writeNibble(byte nibble, byte pins[IO_PIN_CNT]) {
+    byte mask = 0x1;
+
+    for (int i = 0; i < IO_PIN_CNT; i++) {
+        digitalWrite(pins[i], (mask & nibble) > 0);
+        mask <<= 1;
+    }
+}
+
 void readAll(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT]) {
     // Set the IO pins to input.
     Serial.println("Set IO pins INPUT");
@@ -28,23 +38,7 @@ void readAll(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT]) {
         pinMode(io_pins[i], INPUT);
     }
 
-    // Set the address pins to output. 
-    Serial.println("Set ADDR pins OUTPUT");
-    for (int i = 0; i< ADD_PIN_CNT; i++) {
-        pinMode(addr_pins[i], OUTPUT);
-    }
 
-    // Set the mode control pins to output.
-    Serial.println("Set [WRT,STO,REC] OUTPUT");
-    pinMode(WRT, OUTPUT);
-    pinMode(STO, OUTPUT);
-    pinMode(REC, OUTPUT);
-
-    // Default all control pins to HIGH;
-    Serial.println("Set [WRT,STO,REC] HIGH");
-    digitalWrite(WRT, HIGH);
-    digitalWrite(STO, HIGH);
-    digitalWrite(REC, HIGH);
 
     // Toggle Array Recall pin to transfer contents of EEPROM to RAM.
     Serial.println("Toggle array recall pin");
@@ -67,4 +61,41 @@ void readAll(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT]) {
         Serial.print(data[i], HEX);
     }
     Serial.println("\n\n- - - - - - - - - - - - - - - - - \n");
+}
+
+void writeFile(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT]) {
+    // Set a longer serial timeout so there is enough time to paste the file contents.
+    Serial.setTimeout(15*1000);
+
+    // Set the IO pins to output.
+    Serial.println("Set IO pins OUTPUT");
+    for (int i = 0; i < IO_PIN_CNT; i++) {
+        pinMode(io_pins[i], OUTPUT);
+    }
+    
+    // Read in the file contents over serial.
+    char file[MAX_ADDR];
+    Serial.println("Paste in file contents now");
+    Serial.readString().toCharArray(file, MAX_ADDR);
+
+    Serial.println("Begin write to chip.");
+    for (byte addr = 0; addr < MAX_ADDR; addr++) {
+        writeAddr(addr, addr_pins);
+        delayMicroseconds(3);
+
+        Serial.println("Toggle write enable pin");
+        digitalWrite(WRT, LOW);
+        delayMicroseconds(3);
+        digitalWrite(WRT, HIGH);
+        delayMicroseconds(3);
+    }
+
+    // Toggle Store pin to copy from RAM to EEPROM section.
+    Serial.println("Toggle store pin");
+    digitalWrite(STO, LOW);
+    delayMicroseconds(3);
+    digitalWrite(STO, HIGH);
+    delayMicroseconds(3);
+
+    Serial.println("File successfully written to chip.");
 }
