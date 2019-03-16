@@ -31,69 +31,54 @@ void writeNibble(byte nibble, byte pins[IO_PIN_CNT]) {
     }
 }
 
-void readAll(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT]) {
+void readAll(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT], byte* buffer) {
     // Set the IO pins to input.
-    Serial.println("Set IO pins INPUT");
     for (int i = 0; i < IO_PIN_CNT; i++) {
         pinMode(io_pins[i], INPUT);
     }
 
-
-
     // Toggle Array Recall pin to transfer contents of EEPROM to RAM.
-    Serial.println("Toggle array recall pin");
     digitalWrite(STO, LOW);
     delayMicroseconds(3);
     digitalWrite(STO, HIGH);
 
     byte data[MAX_ADDR];
-    Serial.print("Begin reading ");
-    Serial.print(MAX_ADDR);
-    Serial.println(" addresses..");
     for (byte addr = 0; addr < MAX_ADDR; addr++) {
         writeAddr(addr, addr_pins);
         delayMicroseconds(3);
         data[addr] = readNibble(io_pins);
     }
-    // Print out data
-    Serial.println("Printing data:");
-    for (byte i = 0; i < MAX_ADDR; i++) {
-        Serial.print(data[i], HEX);
-    }
-    Serial.println("\n\n- - - - - - - - - - - - - - - - - \n");
+    
+    memcpy(buffer, data, MAX_ADDR);
 }
 
-void writeFile(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT]) {
+void writeFile(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT], const byte* buffer, size_t size) {
     // Set a longer serial timeout so there is enough time to paste the file contents.
     Serial.setTimeout(15*1000);
 
     // Set the IO pins to output.
-    Serial.println("Set IO pins OUTPUT");
     for (int i = 0; i < IO_PIN_CNT; i++) {
         pinMode(io_pins[i], OUTPUT);
     }
-    
-    // Read in the file contents over serial.
-    char file[MAX_ADDR];
-    //Serial.println("Paste in file contents now");
-    //Serial.readString().toCharArray(file, MAX_ADDR);
 
-    String data = "010100000000000000000000000000000000000000000000000028E7EA1928E7EA1900000000180000000000000000000000D048EB19D048EB190000000018000000000000000000000078AAEB1978AAEB19000000001800000000000000000000000000000000000000000000000000000000000000000000000000000000";
-    data.toCharArray(file, MAX_ADDR);
-
-    Serial.println("Begin write to chip.");
-    for (byte addr = 0; addr < MAX_ADDR; addr++) {
+    for (byte addr = 1; addr < size; addr++) {
         writeAddr(addr, addr_pins);
-        char c = file[addr];
-        byte value;
-        if (c < 'A') {
-            value = c & 0xF;
-        } else {
-            value = 9 + (c & 0xF);
-        }
-        //byte value = c<'A'? c & 0xF : 9 + (c & 0xF);
+        char c = buffer[addr];
+        
+        byte nibble_x, nibble_y;
 
-        writeNibble(value, io_pins);
+        nibble_x = c >> 4;    // 0b[1111]0000
+        nibble_y = c & 0x0F;  // 0b1111[0000]
+
+        writeNibble(nibble_x, io_pins);
+        delayMicroseconds(3);
+
+        digitalWrite(WRT, LOW);
+        delayMicroseconds(3);
+        digitalWrite(WRT, HIGH);
+        delayMicroseconds(3);
+ 
+        writeNibble(nibble_y, io_pins);
         delayMicroseconds(3);
 
         digitalWrite(WRT, LOW);
@@ -103,11 +88,8 @@ void writeFile(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT]) {
     }
 
     // Toggle Store pin to copy from RAM to EEPROM section.
-    Serial.println("Toggle store pin");
     digitalWrite(STO, LOW);
     delayMicroseconds(3);
     digitalWrite(STO, HIGH);
     delayMicroseconds(3);
-
-    Serial.println("File successfully written to chip.");
 }
