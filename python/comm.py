@@ -32,7 +32,8 @@ def read_rom():
             ser.write(enc_msg)
 
             dump = cobs.decode(ser.read(512))
-        f.write(dump)
+        if dump:
+            f.write(dump)
         
 
 def write_rom():
