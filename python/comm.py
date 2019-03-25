@@ -13,26 +13,35 @@ MSG_BYTE_LOC = 0
 MSG_READ = 0
 MSG_WRITE = 1
 MSG_PRINT = 2
+MSG_ACK = 3
 
+def read_x_bytes(ser, cnt):
+    raw = ser.read(cnt)
+    xs = bytearray(raw)
+    xs.pop()
+    return cobs.decode(xs)
+
+def write_msg(ser, msg_type, data):
+    data_mut = bytearray(data)
+    data_mut.insert(0, msg_type)
+    enc_msg = bytearray(cobs.encode(data_mut))
+    enc_msg.append(0)
+    print(f'Writing: {enc_msg}')
+    ser.write(enc_msg)
 
 def read_rom():
-    now = datetime.now()
-    file_path = f'ROM_Dump_{now.strftime("%b-%d-%Y_%k:%M:%S")}.pxd'
+    file_path = 'ROM_Dump.pxd'
     with open(file_path, 'wb') as f:
         dump = ''
-        with serial.Serial() as ser:
-            ser.baudrate = 115200
-            ser.timeout = 2 # seconds
-            ser.port = comports()[0]
-            ser.open()
-            sleep(2) # Arduino reboot on port open
-            ser.flush()
-
-            enc_msg = cobs.encode(bytes([MSG_PRINT]))
-            ser.write(enc_msg)
-
-            dump = cobs.decode(ser.read(512))
-        if dump:
+        with serial.Serial('COM14', 115200, timeout=5) as ser:    
+            sleep(1) # Arduino reboot on port open
+            print(f'Ack message: {read_x_bytes(ser, 32)}')
+            write_msg(ser, MSG_READ, [1, 2, 3])
+            sleep(8)
+            dump = bytearray(read_x_bytes(ser, 512))
+            msg_id = dump.pop(0)
+        if dump and msg_id == MSG_PRINT:
+            print(f'dump: {dump}')
             f.write(dump)
         
 
@@ -42,16 +51,11 @@ def write_rom():
 
     file_path = filedialog.askopenfilename()
     xs = bytearray(open(file_path, 'rb').read())
-    xs.insert(MSG_BYTE_LOC, MSG_WRITE) # write file command byte
 
-    xs_enc = cobs.encode(bytes(xs))
-    print('Wrote:\n{}'.format(xs_enc))
-
-    with serial.Serial() as ser:
-        ser.baudrate = 115200
-        ser.port = comports()[0]
-        ser.open()
-        ser.write(xs_enc)
+    with serial.Serial('COM14', 115200, timeout=2) as ser:
+        write_msg(ser, MSG_WRITE, xs)
+    
+    print('Wrote:\n{}'.format(xs))
 
 
 if __name__ == '__main__':

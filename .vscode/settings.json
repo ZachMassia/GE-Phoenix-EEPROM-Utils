@@ -4,7 +4,7 @@
         "PLATFORMIO_CALLER": "vscode"
     },
     "terminal.integrated.env.windows": {
-        "PATH": "C:\\Users\\mguy\\.platformio\\penv\\Scripts;C:\\Users\\mguy\\.platformio\\penv;C:\\Program Files\\Mozilla Firefox;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\QuickTime\\QTSystem\\;C:\\Program Files\\PuTTY\\;C:\\Program Files\\Mozilla Firefox;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\QuickTime\\QTSystem\\;C:\\Program Files\\PuTTY\\",
+        "PATH": "C:\\Users\\mguy\\.platformio\\penv\\Scripts;C:\\Users\\mguy\\.platformio\\penv;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\QuickTime\\QTSystem\\;C:\\Program Files\\PuTTY\\;C:\\Program Files\\Git\\cmd;;C:\\Users\\mguy\\AppData\\Local\\Programs\\Microsoft VS Code\\bin;C:\\Windows\\system32;C:\\Windows;C:\\Windows\\System32\\Wbem;C:\\Windows\\System32\\WindowsPowerShell\\v1.0\\;C:\\Program Files\\QuickTime\\QTSystem\\;C:\\Program Files\\PuTTY\\;C:\\Program Files\\Git\\cmd;;C:\\Users\\mguy\\AppData\\Local\\Programs\\Microsoft VS Code\\bin",
         "PLATFORMIO_CALLER": "vscode"
     }
 }

@@ -14,7 +14,8 @@ PacketSerial myPacketSerial;
 enum MsgType {
   Read,
   Write,
-  Print
+  Print,
+  Ack
 };
 
 byte io_pins[IO_PIN_CNT] = {
@@ -29,6 +30,7 @@ void onPacketReceived(const uint8_t* buffer, size_t size);
 
 
 void setup() {
+  Serial.begin(115200);
   myPacketSerial.begin(115200);
   myPacketSerial.setPacketHandler(&onPacketReceived);
 
@@ -47,17 +49,8 @@ void setup() {
   digitalWrite(STO, HIGH);
   digitalWrite(REC, HIGH);
 
-
-  /*Serial.println("Begining memory dump:");
-  readAll(io_pins, addr_pins);
-
-  writeFile(io_pins, addr_pins);
-
-  Serial.println("Contents of chip after write:");
-  readAll(io_pins, addr_pins);
-
-  Serial.println("Done.");*/
-
+  byte ack_msg[] = {MsgType::Ack};
+  myPacketSerial.send(ack_msg, sizeof(ack_msg));
 }
 
 void loop() { 
@@ -67,15 +60,17 @@ void loop() {
 void onPacketReceived(const uint8_t* buffer, size_t size)
 {
   byte msg_id = buffer[0];
+  byte data[RAM_SIZE + 1] = {}; // Add extra byte for message ID. 
+
   switch(msg_id) {
     case MsgType::Read: // ----------------------------------------------------
-      byte data[MAX_ADDR + 1]; // Add extra byte for message ID. 
       readAll(io_pins, addr_pins, data + 1 ); // Send data buffer offset by 1 to prevent writing to ID byte.
       data[0] = MsgType::Print;
-      myPacketSerial.send(data, MAX_ADDR + 1);
+      myPacketSerial.send(data, RAM_SIZE + 1);
       break;
     case MsgType::Write: // ---------------------------------------------------
-      writeFile(io_pins, addr_pins, buffer, size);
+      writeFile(io_pins, addr_pins, buffer + 1, RAM_SIZE);
       break;
+    default: break;
   }
 }

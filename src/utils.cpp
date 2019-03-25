@@ -31,25 +31,41 @@ void writeNibble(byte nibble, byte pins[IO_PIN_CNT]) {
     }
 }
 
+void packarray(unsigned char *buff, int len)
+{ 
+    unsigned char *packed;
+    unsigned char byte;
+//    assert(len >= 2);  /* len must be at least 2 bytes */
+//    assert((len & 1) != 1);   /* len must be an even number */
+    for (packed = buff; len>0; len-=2) {
+        byte= *buff++;
+        *packed++ = (byte << 4) | *buff++;
+    }
+}
+
 void readAll(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT], byte* buffer) {
     // Set the IO pins to input.
     for (int i = 0; i < IO_PIN_CNT; i++) {
         pinMode(io_pins[i], INPUT);
     }
 
+    int dtime = 15;
+
     // Toggle Array Recall pin to transfer contents of EEPROM to RAM.
     digitalWrite(STO, LOW);
-    delayMicroseconds(3);
+    delayMicroseconds(dtime);
     digitalWrite(STO, HIGH);
+    delayMicroseconds(dtime);
 
-    byte data[MAX_ADDR];
-    for (byte addr = 0; addr < MAX_ADDR; addr++) {
+    byte data[RAM_SIZE];
+    for (byte addr = 0; addr < RAM_SIZE; addr++) {
         writeAddr(addr, addr_pins);
-        delayMicroseconds(3);
+        delayMicroseconds(dtime);
         data[addr] = readNibble(io_pins);
     }
     
-    memcpy(buffer, data, MAX_ADDR);
+    memcpy(buffer, data, RAM_SIZE);
+    packarray(buffer, RAM_SIZE);
 }
 
 void writeFile(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT], const byte* buffer, size_t size) {
@@ -61,35 +77,41 @@ void writeFile(byte io_pins[IO_PIN_CNT], byte addr_pins[ADD_PIN_CNT], const byte
         pinMode(io_pins[i], OUTPUT);
     }
 
-    for (byte addr = 1; addr < size; addr++) {
-        writeAddr(addr, addr_pins);
-        char c = buffer[addr];
+    byte addr = 0;
+    int dtime = 15;
+
+    for (byte i = 1; i < size; i++) {
+        char c = buffer[i];
         
-        byte nibble_x, nibble_y;
+        byte l_nib, h_nib;
 
-        nibble_x = c >> 4;    // 0b[1111]0000
-        nibble_y = c & 0x0F;  // 0b1111[0000]
+        l_nib = c & 0x0F;         // 0000[0000]
+        h_nib = (c & 0xF0) >> 4;  // [0000]0000
 
-        writeNibble(nibble_x, io_pins);
-        delayMicroseconds(3);
+        writeAddr(addr++, addr_pins);
+        delayMicroseconds(dtime);
+        writeNibble(h_nib, io_pins);
+        delayMicroseconds(dtime);
 
         digitalWrite(WRT, LOW);
-        delayMicroseconds(3);
+        delayMicroseconds(dtime);
         digitalWrite(WRT, HIGH);
-        delayMicroseconds(3);
+        delayMicroseconds(dtime);
  
-        writeNibble(nibble_y, io_pins);
-        delayMicroseconds(3);
+        writeAddr(addr++, addr_pins);
+        delayMicroseconds(dtime);
+        writeNibble(l_nib, io_pins);
+        delayMicroseconds(dtime);
 
         digitalWrite(WRT, LOW);
-        delayMicroseconds(3);
+        delayMicroseconds(dtime);
         digitalWrite(WRT, HIGH);
-        delayMicroseconds(3);
+        delayMicroseconds(dtime);
     }
 
     // Toggle Store pin to copy from RAM to EEPROM section.
     digitalWrite(STO, LOW);
-    delayMicroseconds(3);
+    delayMicroseconds(dtime);
     digitalWrite(STO, HIGH);
-    delayMicroseconds(3);
+    delay(10); // Max store duration 10ms as per datasheet.
 }

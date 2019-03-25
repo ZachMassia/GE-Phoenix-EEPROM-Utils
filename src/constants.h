@@ -15,6 +15,6 @@
 #define AD5 18
 #define AD6 19
 
-#define MAX_ADDR    255
+#define RAM_SIZE    255
 #define ADD_PIN_CNT 8
 #define IO_PIN_CNT  4
