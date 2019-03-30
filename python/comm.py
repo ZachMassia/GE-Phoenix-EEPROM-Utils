@@ -17,6 +17,8 @@ MSG_PRINT = 2
 MSG_ACK   = 3
 MSG_DELIM = b'\x00'
 
+ORIG_BYTE_CNT = 410
+
 BAUD_RATE = 115200
 TIMEOUT = 0.5 # seconds
 
@@ -81,8 +83,12 @@ def read_rom(ser):
         msg_id = dump.pop(0)
 
         if dump and msg_id == MSG_PRINT:
-            print(f'dump: {dump}')
-            f.write(dump)
+            # Pad the file with trailing 0 bytes to match original file size.
+            rx_size = len(dump)
+            pad = ORIG_BYTE_CNT - rx_size
+            dump.extend(bytes(pad))
+            b = f.write(dump)
+            print(f'Wrote {b} bytes to log file. (Padded with {pad} 0x00 bytes.)')
         
 
 def write_rom(ser):
