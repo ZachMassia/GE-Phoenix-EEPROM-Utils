@@ -9,14 +9,8 @@
 #include "constants.h"
 #include "utils.hpp"
 
-PacketSerial myPacketSerial;
 
-enum MsgType {
-  Read,
-  Write,
-  Print,
-  Ack
-};
+PacketSerial_<COBS, 0, 512> myPacketSerial;
 
 byte io_pins[IO_PIN_CNT] = {
   IO1, IO2, IO3, IO4
@@ -30,8 +24,7 @@ void onPacketReceived(const uint8_t* buffer, size_t size);
 
 
 void setup() {
-  Serial.begin(115200);
-  myPacketSerial.begin(115200);
+  myPacketSerial.begin(BAUD_RATE);
   myPacketSerial.setPacketHandler(&onPacketReceived);
 
   // Set the address pins to output. 
@@ -63,13 +56,19 @@ void onPacketReceived(const uint8_t* buffer, size_t size)
   byte data[RAM_SIZE + 1] = {}; // Add extra byte for message ID. 
 
   switch(msg_id) {
-    case MsgType::Read: // ----------------------------------------------------
+    case MsgType::Read: {
       readAll(io_pins, addr_pins, data + 1 ); // Send data buffer offset by 1 to prevent writing to ID byte.
       data[0] = MsgType::Print;
-      myPacketSerial.send(data, RAM_SIZE + 1);
+      myPacketSerial.send(data, (RAM_SIZE/2)+1);
+      return;
+    }
       break;
-    case MsgType::Write: // ---------------------------------------------------
-      writeFile(io_pins, addr_pins, buffer + 1, RAM_SIZE);
+    case MsgType::Write: {
+      size_t b = writeFile(io_pins, addr_pins, buffer + 1, size - 1);
+      byte ack_msg[] = {MsgType::Ack, lowByte(b), highByte(b)};
+      myPacketSerial.send(ack_msg, sizeof(ack_msg));
+      return;
+    }
       break;
     default: break;
   }
